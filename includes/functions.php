@@ -1,0 +1,11 @@
+<?php
+function start_secure_session():void{if(session_status()===PHP_SESSION_NONE){session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>!empty($_SERVER['HTTPS']),'httponly'=>true,'samesite'=>'Lax']);session_start();}}
+function e($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
+function csrf_token():string{start_secure_session();if(empty($_SESSION['csrf_token']))$_SESSION['csrf_token']=bin2hex(random_bytes(32));return $_SESSION['csrf_token'];}
+function csrf_field():string{return '<input type="hidden" name="csrf_token" value="'.e(csrf_token()).'">';}
+function verify_csrf($t):bool{start_secure_session();return is_string($t)&&hash_equals($_SESSION['csrf_token']??'',$t);} function redirect(string $u):never{header('Location: '.$u);exit;}
+function status_label(string $s):string{return ['available'=>'Disponible','rented'=>'Louée','maintenance'=>'Maintenance','hidden'=>'Masquée','new'=>'Nouvelle','contacted'=>'Contacté','confirmed'=>'Confirmée','cancelled'=>'Annulée'][$s]??$s;}
+function slugify(string $s):string{$s=iconv('UTF-8','ASCII//TRANSLIT',$s)?:$s;$s=strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/','-',$s),'-'));return $s?:'voiture';}
+function valid_date(string $d):bool{$x=DateTime::createFromFormat('Y-m-d',$d);return $x&&$x->format('Y-m-d')===$d;} function agency(PDO $pdo):array{$st=$pdo->prepare('SELECT * FROM agencies WHERE slug=:s LIMIT 1');$st->execute(['s'=>'atlas-drive-system']);return $st->fetch()?:['name'=>SITE_NAME,'whatsapp_number'=>DEFAULT_WHATSAPP];}
+function car_img($p):string{return $p?'/'.ltrim($p,'/'):'/assets/images/car-placeholder.svg';}
+function upload_img(array $f):?string{if(($f['error']??4)===4)return null;if($f['error']!==0||$f['size']>MAX_IMAGE_SIZE)throw new RuntimeException('Image invalide');$ext=strtolower(pathinfo($f['name'],PATHINFO_EXTENSION));$mime=(new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']);if(!in_array($ext,['jpg','jpeg','png','webp'],true)||!in_array($mime,['image/jpeg','image/png','image/webp'],true))throw new RuntimeException('Format non autorisé');if(!is_dir(UPLOAD_DIR))mkdir(UPLOAD_DIR,0755,true);$n=bin2hex(random_bytes(16)).'.'.$ext;if(!move_uploaded_file($f['tmp_name'],UPLOAD_DIR.$n))throw new RuntimeException('Upload impossible');return 'uploads/cars/'.$n;}

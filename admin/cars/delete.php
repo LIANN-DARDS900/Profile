@@ -1,0 +1,1 @@
+<?php require_once __DIR__.'/../includes/auth_check.php'; if($_SERVER['REQUEST_METHOD']!=='POST'||!verify_csrf($_POST['csrf_token']??'')) exit('Demande invalide'); $s=$pdo->prepare('UPDATE cars SET status=:status WHERE id=:id'); $s->execute(['status'=>'hidden','id'=>(int)$_POST['id']]); redirect('/admin/cars/');

@@ -1,0 +1,10 @@
+Options -Indexes
+RewriteEngine On
+RewriteRule ^voiture/([a-zA-Z0-9-]+)/?$ cars/detail.php?slug=$1 [L,QSA]
+RewriteRule ^location-voiture-([a-zA-Z0-9-]+)/?$ villes/ville.php?slug=$1 [L,QSA]
+RewriteRule ^(config|sql)/ - [F,L]
+<IfModule mod_headers.c>
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "SAMEORIGIN"
+Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
